@@ -1,8 +1,9 @@
 package i.like.train.web.rest;
 
 import i.like.train.domain.Train;
-import i.like.train.helper.ResponseUtil;
 import i.like.train.repository.TrainRepository;
+import i.like.train.web.rest.error.BadRequestAlertException;
+import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,8 @@ public class TrainResource {
 
     private final Logger log = LoggerFactory.getLogger(TrainResource.class);
 
+    private static final String ENTITY_NAME = "train";
+
     private final TrainRepository repository;
 
     public TrainResource(TrainRepository repository) {
@@ -33,10 +36,24 @@ public class TrainResource {
      */
     @PostMapping("/trains")
     public ResponseEntity<Train> createTrain(@RequestBody Train trainToSaveOnDatabase) throws URISyntaxException {
-        log.debug("REST request to save Train");
+        log.debug("REST request to save Train : {}", trainToSaveOnDatabase);
+        if(trainToSaveOnDatabase.getId() != null) {
+            throw new BadRequestAlertException("A new Train cannot already have an ID", ENTITY_NAME, "id-exists");
+        }
         Train result = repository.save(trainToSaveOnDatabase);
         return ResponseEntity.created(new URI("/api/trains/" + result.getId()))
                 .body(result);
+    }
+
+    @PutMapping("/trains")
+    public ResponseEntity<Train> updateTrain(@RequestBody Train trainToUpdate){
+        log.debug("REST request to update train : {}", trainToUpdate);
+        if(trainToUpdate.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "id-null");
+        }
+        Train result = repository.save(trainToUpdate);
+        return ResponseEntity.ok()
+            .body(result);
     }
 
     /**
