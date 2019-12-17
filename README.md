@@ -6,7 +6,9 @@ Project currently at a beginning stage, came back there in a few days.
 
 Practical exercise for working with Integration tests and design pattern.
 
-## Requirement : Java 11.
+## Technical stuff
+
+Requirement: Java 11.
 
 Files exploration:
 - Business logic -> `src/main/java/*`
