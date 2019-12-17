@@ -56,6 +56,13 @@ public class TrainResource {
             .body(result);
     }
 
+    @DeleteMapping("/trains/{id}")
+    public ResponseEntity<Void> deleteTrain(@PathVariable Long id) {
+        log.debug("REST request to delete train by Id : {}", id);
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * GET all trains from database
      */

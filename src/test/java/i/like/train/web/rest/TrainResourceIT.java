@@ -16,8 +16,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -83,22 +82,6 @@ public class TrainResourceIT {
     }
 
     @Test
-    public void createTrainWithExistingId() throws Exception {
-        int databaseBeforeCreation = trainRepository.findAll().size();
-
-        // Create a train with existing ID
-        train.setId(1L);
-
-        restTrainMockMvc.perform(post("/api/trains")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(train))
-        ).andExpect(status().isBadRequest());
-
-        List<Train> trainList = trainRepository.findAll();
-        assertThat(trainList).hasSize(databaseBeforeCreation);
-    }
-
-    @Test
     public void updateTrain() throws Exception {
         trainRepository.save(train);
 
@@ -113,6 +96,20 @@ public class TrainResourceIT {
 
         List<Train> trainList = trainRepository.findAll();
         assertThat(trainList).hasSize(databaseBeforeUpdate);
+    }
+
+    @Test
+    public void deleteTrain() throws Exception {
+        trainRepository.save(train);
+
+        int databaseBeforeUpdate = trainRepository.findAll().size();
+
+        restTrainMockMvc.perform(delete("/api/trains/" + train.getId())
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+        ).andExpect(status().isNoContent());
+
+        List<Train> trainList = trainRepository.findAll();
+        assertThat(trainList).hasSize(databaseBeforeUpdate - 1);
     }
 
 }
