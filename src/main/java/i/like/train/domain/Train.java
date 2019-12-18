@@ -1,10 +1,9 @@
 package i.like.train.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Train implements Serializable {
@@ -12,13 +11,16 @@ public class Train implements Serializable {
     /**
      * Object attributes
      */
-    private Long version = 1L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer numberOfPassenger;
+    private Long version = 2L;
+
+    private Integer maxNumberOfPassenger;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<Passenger> passengerList = new ArrayList<>();
 
     /**
      * Default constructor
@@ -44,26 +46,36 @@ public class Train implements Serializable {
         this.version = version;
     }
 
-    public Integer getNumberOfPassenger() {
-        return numberOfPassenger;
+    public Integer getMaxNumberOfPassenger() {
+        return maxNumberOfPassenger;
     }
 
-    public void setNumberOfPassenger(Integer numberOfPassenger) {
-        this.numberOfPassenger = numberOfPassenger;
+    public void setMaxNumberOfPassenger(Integer numberOfPassenger) {
+        this.maxNumberOfPassenger = numberOfPassenger;
+    }
+
+
+    public Train numberOfPassenger(Integer defaultNumberOfPassenger) {
+        this.maxNumberOfPassenger = defaultNumberOfPassenger;
+        return this;
+    }
+
+    public List<Passenger> getPassengerList() {
+        return passengerList;
+    }
+
+    public void setPassengerList(List<Passenger> passengerList) {
+        this.passengerList = passengerList;
     }
 
     @Override
     public String toString() {
         return "Train{" +
-                "id=" + id +
-                ", version=" + version +
-                ", numberOfPassenger=" + numberOfPassenger +
+                "version=" + version +
+                ", id=" + id +
+                ", maxNumberOfPassenger=" + maxNumberOfPassenger +
+                ", passengerList=" + passengerList +
                 '}';
-    }
-
-    public Train numberOfPassenger(Integer defaultNumberOfPassenger) {
-        this.numberOfPassenger = defaultNumberOfPassenger;
-        return this;
     }
 
 }

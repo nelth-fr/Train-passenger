@@ -2,6 +2,7 @@ package i.like.train.web.rest;
 
 import i.like.train.domain.Train;
 import i.like.train.repository.TrainRepository;
+import io.github.jhipster.web.util.ResponseUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -25,8 +27,7 @@ public class TrainResourceIT {
     /**
      * Object used for testing purpose
      */
-    private static final Integer DEFAULT_NUMBER_OF_PASSENGER = 123;
-    private static final Integer UPDATED_NUMBER_OF_PASSENGER = 256;
+    private static final Integer DEFAULT_NUMBER_OF_PASSENGER = 10;
 
     /**
      * Context attributes
@@ -57,8 +58,7 @@ public class TrainResourceIT {
      * Create an entity for this test
      */
     public static Train createEntity(EntityManager em) {
-        return new Train()
-            .numberOfPassenger(DEFAULT_NUMBER_OF_PASSENGER);
+        return new Train().numberOfPassenger(DEFAULT_NUMBER_OF_PASSENGER);
     }
 
     @BeforeEach
@@ -78,30 +78,21 @@ public class TrainResourceIT {
         List<Train> trainList = trainRepository.findAll();
         assertThat(trainList).hasSize(databaseBeforeCreation + 1);
         Train trainFromDb = trainList.get(trainList.size() - 1);
-        assertThat(trainFromDb.getNumberOfPassenger()).isEqualTo(DEFAULT_NUMBER_OF_PASSENGER);
+        assertThat(trainFromDb.getMaxNumberOfPassenger()).isEqualTo(DEFAULT_NUMBER_OF_PASSENGER);
     }
 
     @Test
-    public void updateTrain() throws Exception {
+    public void getTrainBySpecificId() throws Exception {
         trainRepository.save(train);
-
-        int databaseBeforeUpdate = trainRepository.findAll().size();
-        Train trainToUpdate = trainRepository.findById(train.getId()).get();
-        trainToUpdate.setNumberOfPassenger(UPDATED_NUMBER_OF_PASSENGER);
-
-        restTrainMockMvc.perform(put("/api/trains")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(trainToUpdate))
-        ).andExpect(status().isOk());
-
-        List<Train> trainList = trainRepository.findAll();
-        assertThat(trainList).hasSize(databaseBeforeUpdate);
+        restTrainMockMvc.perform(get("/api/trains/" + train.getId())
+            .contentType(TestUtil.APPLICATION_JSON_UTF8))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(train.getId().intValue()));
     }
 
     @Test
     public void deleteTrain() throws Exception {
         trainRepository.save(train);
-
         int databaseBeforeUpdate = trainRepository.findAll().size();
 
         restTrainMockMvc.perform(delete("/api/trains/" + train.getId())

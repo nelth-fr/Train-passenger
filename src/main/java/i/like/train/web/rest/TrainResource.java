@@ -23,10 +23,10 @@ public class TrainResource {
 
     private static final String ENTITY_NAME = "train";
 
-    private final TrainRepository repository;
+    private final TrainRepository trainRepository;
 
-    public TrainResource(TrainRepository repository) {
-        this.repository = repository;
+    public TrainResource(TrainRepository trainRepository) {
+        this.trainRepository = trainRepository;
     }
 
     /**
@@ -40,46 +40,35 @@ public class TrainResource {
         if(trainToSaveOnDatabase.getId() != null) {
             throw new BadRequestAlertException("A new Train cannot already have an ID", ENTITY_NAME, "id-exists");
         }
-        Train result = repository.save(trainToSaveOnDatabase);
+        Train result = trainRepository.save(trainToSaveOnDatabase);
         return ResponseEntity.created(new URI("/api/trains/" + result.getId()))
                 .body(result);
-    }
-
-    @PutMapping("/trains")
-    public ResponseEntity<Train> updateTrain(@RequestBody Train trainToUpdate){
-        log.debug("REST request to update train : {}", trainToUpdate);
-        if(trainToUpdate.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "id-null");
-        }
-        Train result = repository.save(trainToUpdate);
-        return ResponseEntity.ok()
-            .body(result);
     }
 
     @DeleteMapping("/trains/{id}")
     public ResponseEntity<Void> deleteTrain(@PathVariable Long id) {
         log.debug("REST request to delete train by Id : {}", id);
-        repository.deleteById(id);
+        trainRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     /**
-     * GET all trains from database
+     * GET all Trains with eager loading
      */
     @GetMapping("/trains")
     public ResponseEntity<List<Train>> getAllTrains() {
         log.debug("REST request to get all Trains");
-        List<Train> trainList = repository.findAll();
+        List<Train> trainList = trainRepository.findAll();
         return ResponseEntity.ok().body(trainList);
     }
 
     /**
-     * GET a specific train from database based on his id
+     * GET a specific train and it passengers
      */
     @GetMapping("/trains/{id}")
     public ResponseEntity<Train> getTrainById(@PathVariable Long id) {
         log.debug("REST request to get Train: {}", id);
-        Optional<Train> train = repository.findById(id);
+        Optional<Train> train = trainRepository.findById(id);
         return ResponseUtil.wrapOrNotFound(train);
     }
 
