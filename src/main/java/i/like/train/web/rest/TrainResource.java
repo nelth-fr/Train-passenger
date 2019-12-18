@@ -23,7 +23,7 @@ public class TrainResource {
 
     private static final String ENTITY_NAME = "train";
 
-    private final TrainRepository trainRepository;
+    private TrainRepository trainRepository;
 
     public TrainResource(TrainRepository trainRepository) {
         this.trainRepository = trainRepository;

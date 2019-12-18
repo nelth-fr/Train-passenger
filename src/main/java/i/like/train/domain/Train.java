@@ -14,13 +14,23 @@ public class Train implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private Long version = 2L;
+    private Long version = 3L;
 
     private Integer maxNumberOfPassenger;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "trains",
+            cascade = CascadeType.ALL
+    )
     private List<Passenger> passengerList = new ArrayList<>();
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            mappedBy = "trains",
+            cascade = CascadeType.ALL
+    )
+    private List<Event> eventList = new ArrayList<>();
 
     /**
      * Default constructor
@@ -54,8 +64,8 @@ public class Train implements Serializable {
         this.maxNumberOfPassenger = numberOfPassenger;
     }
 
-
-    public Train numberOfPassenger(Integer defaultNumberOfPassenger) {
+    // Setter used for testing purpose
+    public Train maxNumberOfPassenger(Integer defaultNumberOfPassenger) {
         this.maxNumberOfPassenger = defaultNumberOfPassenger;
         return this;
     }
@@ -68,13 +78,22 @@ public class Train implements Serializable {
         this.passengerList = passengerList;
     }
 
+    public List<Event> getEventList() {
+        return eventList;
+    }
+
+    public void setEventList(List<Event> eventList) {
+        this.eventList = eventList;
+    }
+
     @Override
     public String toString() {
         return "Train{" +
-                "version=" + version +
-                ", id=" + id +
+                "id=" + id +
+                ", version=" + version +
                 ", maxNumberOfPassenger=" + maxNumberOfPassenger +
                 ", passengerList=" + passengerList +
+                ", eventList=" + eventList +
                 '}';
     }
 

@@ -1,9 +1,6 @@
 package i.like.train.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
@@ -40,4 +37,14 @@ public class Passenger implements Serializable {
                 '}';
     }
 
+    @ManyToOne(optional = false)
+    private Train trains;
+
+    public Train getTrains() {
+        return trains;
+    }
+
+    public void setTrains(Train trains) {
+        this.trains = trains;
+    }
 }
