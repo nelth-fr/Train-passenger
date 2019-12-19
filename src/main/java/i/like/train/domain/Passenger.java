@@ -4,6 +4,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
+@Table(name = "passenger")
 public class Passenger implements Serializable {
 
     @Id

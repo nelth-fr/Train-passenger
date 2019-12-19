@@ -1,11 +1,14 @@
 package i.like.train.domain;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "train")
 public class Train implements Serializable {
 
     /**
@@ -14,22 +17,15 @@ public class Train implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private Long version = 3L;
 
     private Integer maxNumberOfPassenger;
 
-    @OneToMany(
-            fetch = FetchType.LAZY,
-            mappedBy = "trains",
-            cascade = CascadeType.ALL
-    )
+    @OneToMany( fetch = FetchType.LAZY, mappedBy = "trains" )
     private List<Passenger> passengerList = new ArrayList<>();
 
-    @OneToMany(
-            fetch = FetchType.LAZY,
-            mappedBy = "trains",
-            cascade = CascadeType.ALL
-    )
+    @OneToMany( fetch = FetchType.LAZY, mappedBy = "trains" )
     private List<Event> eventList = new ArrayList<>();
 
     /**

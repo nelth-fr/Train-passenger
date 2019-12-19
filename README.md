@@ -4,7 +4,7 @@ Project currently at a beginning stage, came back there in a few days.
 
 ## Purpose
 
-Practical exercise for working with Integration tests and design pattern.
+Practical exercise to working with Integration tests on Event-sourcing architecture.
 
 ## Technical stuff
 

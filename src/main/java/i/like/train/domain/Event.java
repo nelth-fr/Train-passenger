@@ -1,10 +1,12 @@
 package i.like.train.domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Entity
+@Table(name = "event")
 public class Event implements Serializable {
 
     /**
@@ -15,6 +17,7 @@ public class Event implements Serializable {
     private Long id;
     private Integer version;
 
+    @NotNull
     private Timestamp createdAt;
 
     /**

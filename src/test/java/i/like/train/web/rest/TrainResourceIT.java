@@ -1,5 +1,7 @@
 package i.like.train.web.rest;
 
+import i.like.train.domain.Event;
+import i.like.train.domain.Passenger;
 import i.like.train.domain.Train;
 import i.like.train.repository.TrainRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,9 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasItem;
@@ -28,6 +32,8 @@ public class TrainResourceIT {
      * Object used for testing purpose
      */
     private static final Integer DEFAULT_NUMBER_OF_PASSENGER = 10;
+    private static final List<Passenger> DEFAULT_PASSENGER_LIST = new ArrayList<>();
+    private static final List<Event> DEFAULT_EVENT_LIST = new ArrayList<>();
 
     /**
      * Context attributes
@@ -73,6 +79,7 @@ public class TrainResourceIT {
      * Integration tests
      */
     @Test
+    @Transactional
     public void createTrain() throws Exception {
         final int databaseBeforeCreation = trainRepository.findAll().size();
 
@@ -88,6 +95,7 @@ public class TrainResourceIT {
     }
 
     @Test
+    @Transactional
     public void getAllTrains() throws Exception {
         trainRepository.saveAndFlush(train);
 
@@ -95,15 +103,15 @@ public class TrainResourceIT {
             .contentType(TestUtil.APPLICATION_JSON_UTF8))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(train.getId())));
+            .andExpect(jsonPath("$.[*].id").value(hasItem(train.getId().intValue())))
+            .andExpect(jsonPath("$.[*].passengerList").value(hasItem(DEFAULT_PASSENGER_LIST)))
+            .andExpect(jsonPath("$.[*].eventList").value(hasItem(DEFAULT_EVENT_LIST)));
     }
 
     @Test
+    @Transactional
     public void getTrainBySpecificId() throws Exception {
         trainRepository.saveAndFlush(train);
-
-        //Debuging like old time lol
-        System.out.println(trainRepository.findAll());
 
         restTrainMockMvc.perform(get("/api/trains/" + train.getId())
             .contentType(TestUtil.APPLICATION_JSON_UTF8))
@@ -114,6 +122,7 @@ public class TrainResourceIT {
     }
 
     @Test
+    @Transactional
     public void deleteTrain() throws Exception {
         trainRepository.saveAndFlush(train);
         int databaseBeforeUpdate = trainRepository.findAll().size();
