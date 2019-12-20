@@ -10,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 public class TrainEventIT {
@@ -89,10 +88,17 @@ public class TrainEventIT {
     public void getAllEventsFromTrain() throws Exception {
         trainRepository.saveAndFlush(train);
 
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
+        .contentType(TestUtil.APPLICATION_JSON_UTF8)
+        .content(TestUtil.convertObjectToJsonBytes(event)))
+        .andExpect(status().isCreated());
+
         restTrainMockMvc.perform(get("/api/trains/" + train.getId() + "/events")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        .contentType(TestUtil.APPLICATION_JSON_UTF8))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.[*].id").value(event.getId()))
+        .andExpect(jsonPath("$.[*].version").value(event.getVersion()));
+        // TODO : event.createdAt() should be tested but it include to play around with Timestamp and it tooks time --"
     }
 
     @Test
@@ -101,11 +107,34 @@ public class TrainEventIT {
         trainRepository.saveAndFlush(train);
 
         restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(event))
-        ).andExpect(status().isCreated());
+        .contentType(TestUtil.APPLICATION_JSON_UTF8)
+        .content(TestUtil.convertObjectToJsonBytes(event)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(event.getId()))
+        .andExpect(jsonPath("$.version").value(event.getVersion()))
+        .andExpect(jsonPath("$.createdAt").value(event.getCreatedAt().getTime()));
+    }
 
-        // List verifications there
+    @Test
+    @Transactional
+    public void newEventShouldInteractWithTrainState() throws Exception {
+        trainRepository.saveAndFlush(train);
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
+        .contentType(TestUtil.APPLICATION_JSON_UTF8)
+        .content(TestUtil.convertObjectToJsonBytes(event)));
+
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
+        .contentType(TestUtil.APPLICATION_JSON_UTF8)
+        .content(TestUtil.convertObjectToJsonBytes(event)));
+
+        Train train = trainRepository.findAll().get(0);
+        assertThat(train.getVersion()).isEqualTo(2);
+    }
+
+    @Test
+    @Transactional
+    public void newEventShouldCreatePassenger() {
+        assert false;
     }
 
 }

@@ -43,7 +43,7 @@ public class TrainResource {
         }
         Train result = trainRepository.save(trainToSaveOnDatabase);
         return ResponseEntity.created(new URI("/api/trains/" + result.getId()))
-                .body(result);
+            .body(result);
     }
 
     /**
@@ -81,7 +81,7 @@ public class TrainResource {
      */
     @GetMapping("/trains/{id}/passengers")
     public ResponseEntity<List<Passenger>> getPassengerListByTrain(@PathVariable Long id) {
-        log.debug("REST request to get a list of Passenger by Trains : {}", id);
+        log.debug("REST request to get a list of Passengers on Train.getId() : {}", id);
         Optional<Train> trainRepositoryById = trainRepository.findById(id);
         List<Passenger> passengerList = trainRepositoryById.get().getPassengerList();
         return ResponseEntity.ok().body(passengerList);
@@ -92,10 +92,9 @@ public class TrainResource {
      *
      * Should be transactional to let the ORM play nicely with database
      */
-    @Transactional
     @GetMapping("/trains/{id}/events")
     public ResponseEntity<List<Event>> getEventListByTrain(@PathVariable Long id) {
-        log.debug("REST request to get a list of Events by Trains : {}", id);
+        log.debug("REST request to get a list of Events on Train.getId() : {}", id);
         Optional<Train> trainRepositoryById = trainRepository.findById(id);
         List<Event> eventList = trainRepositoryById.get().getEventList();
         return ResponseEntity.ok().body(eventList);
@@ -109,15 +108,18 @@ public class TrainResource {
     @Transactional
     @PostMapping("/trains/{id}/events")
     public ResponseEntity<Event> createNewEventByTrain(@PathVariable Long id, @RequestBody Event eventToSave) throws URISyntaxException {
-        log.debug("REST request to get a list of Passenger by Trains : {}", id);
+        log.debug("REST request to Post a new Event on Train.getId() : {}", id);
+
         Train train = trainRepository.findById(id).get();
         List<Event> trainEventList = train.getEventList();
         trainEventList.add(eventToSave);
+        int originalVersion = train.getVersion();
+        train.setVersion(originalVersion + 1);
 
         trainRepository.save(train);
-        return ResponseEntity
-                .created(URI.create(new URI("/api/trains/" + train.getId()) + "/events/" + eventToSave.getId()))
-                .body(eventToSave);
+        return ResponseEntity.created(URI.create(new URI(
+            "/api/trains/" + train.getId()) + "/events/" + eventToSave.getId()
+        )).body(eventToSave);
     }
 
 }

@@ -1,7 +1,5 @@
 package i.like.train.domain;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,7 +16,7 @@ public class Train implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long version = 3L;
+    private Integer version = 0;
 
     private Integer maxNumberOfPassenger;
 
@@ -44,11 +42,11 @@ public class Train implements Serializable {
         this.id = id;
     }
 
-    public long getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(long version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

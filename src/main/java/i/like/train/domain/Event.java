@@ -15,7 +15,7 @@ public class Event implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer version;
+    private Integer version = 0;
 
     @NotNull
     private Timestamp createdAt;
