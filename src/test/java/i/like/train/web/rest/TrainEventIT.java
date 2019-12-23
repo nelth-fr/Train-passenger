@@ -106,29 +106,39 @@ public class TrainEventIT {
     public void createEent() throws Exception {
         trainRepository.saveAndFlush(train);
 
-        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
-        .contentType(TestUtil.APPLICATION_JSON_UTF8)
-        .content(TestUtil.convertObjectToJsonBytes(event)))
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(event.getId()))
-        .andExpect(jsonPath("$.version").value(event.getVersion()))
-        .andExpect(jsonPath("$.createdAt").value(event.getCreatedAt().getTime()));
+        .andExpect(jsonPath("$.version").value(0));
+//        // TODO .andExpect(jsonPath("$.createdAt").value(event.getCreatedAt().getTime()));
     }
 
     @Test
     @Transactional
-    public void newEventShouldInteractWithTrainState() throws Exception {
+    public void deleteEvent() throws Exception {
+        assert false;
+    }
+
+    @Test
+    @Transactional
+    public void train_state_and_event_state_should_stay_synchronise_over_time() throws Exception {
         trainRepository.saveAndFlush(train);
-        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
-        .contentType(TestUtil.APPLICATION_JSON_UTF8)
-        .content(TestUtil.convertObjectToJsonBytes(event)));
 
-        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events")
-        .contentType(TestUtil.APPLICATION_JSON_UTF8)
-        .content(TestUtil.convertObjectToJsonBytes(event)));
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.version").value(0));
 
-        Train train = trainRepository.findAll().get(0);
-        assertThat(train.getVersion()).isEqualTo(2);
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.version").value(1));
+
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.version").value(2));
+
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.version").value(3));
     }
 
     @Test

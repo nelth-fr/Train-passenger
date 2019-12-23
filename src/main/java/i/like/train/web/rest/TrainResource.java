@@ -1,5 +1,6 @@
 package i.like.train.web.rest;
 
+import com.google.common.collect.Iterables;
 import i.like.train.domain.Event;
 import i.like.train.domain.Passenger;
 import i.like.train.domain.Train;
@@ -13,9 +14,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.OptionalDataException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Controller
@@ -36,12 +39,12 @@ public class TrainResource {
      * {@code POST /trains} : Create a new Train
      */
     @PostMapping("/trains")
-    public ResponseEntity<Train> createTrain(@RequestBody Train trainToSaveOnDatabase) throws URISyntaxException {
-        log.debug("REST request to save Train : {}", trainToSaveOnDatabase);
-        if(trainToSaveOnDatabase.getId() != null) {
+    public ResponseEntity<Train> createTrain(@RequestBody Train train) throws URISyntaxException {
+        log.debug("REST request to save Train : {}", train);
+        if(train.getId() != null) {
             throw new BadRequestAlertException("A new Train cannot already have an ID", ENTITY_NAME, "id-exists");
         }
-        Train result = trainRepository.save(trainToSaveOnDatabase);
+        Train result = trainRepository.save(train);
         return ResponseEntity.created(new URI("/api/trains/" + result.getId()))
             .body(result);
     }
@@ -101,25 +104,30 @@ public class TrainResource {
     }
 
     /**
-     * {@code GET /trains/{id}/events} : Get Events from a trains by it's ID
-     *
-     * Should be transactional to let the ORM play nicely with database
+     * {@code POST /trains/{id}/events}
      */
     @Transactional
     @PostMapping("/trains/{id}/events")
-    public ResponseEntity<Event> createNewEventByTrain(@PathVariable Long id, @RequestBody Event eventToSave) throws URISyntaxException {
+    public ResponseEntity<Event> createNewEventByTrain(@PathVariable Long id) throws URISyntaxException, NullPointerException {
         log.debug("REST request to Post a new Event on Train.getId() : {}", id);
+        Optional<Train> train = trainRepository.findById(id);
+        // We use the power of Optional type or throw exception
+        if(train.isPresent()){
+            List<Event> eventList = train.get().getEventList();
+            Event eventToSave = new Event(0);
 
-        Train train = trainRepository.findById(id).get();
-        List<Event> trainEventList = train.getEventList();
-        trainEventList.add(eventToSave);
-        int originalVersion = train.getVersion();
-        train.setVersion(originalVersion + 1);
-
-        trainRepository.save(train);
-        return ResponseEntity.created(URI.create(new URI(
-            "/api/trains/" + train.getId()) + "/events/" + eventToSave.getId()
-        )).body(eventToSave);
+            if(eventList.size() == 1) eventToSave = new Event(1);
+            if(eventList.size() >= 2) {
+                int lastEventVersion = Iterables.getLast(eventList).getVersion();
+                eventToSave = new Event(lastEventVersion + 1);
+            }
+            eventList.add(eventToSave);
+            trainRepository.save(train.get());
+            return ResponseEntity.created(
+                new URI("/api/trains/" + train.get().getId() + "/events" + eventToSave.getId()))
+                .body(eventToSave);
+        }
+        throw new BadRequestAlertException("ID unknown, you can't add Event to a Train which doesen't exist", ENTITY_NAME, id.toString());
     }
 
 }

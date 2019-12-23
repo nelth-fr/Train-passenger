@@ -15,7 +15,8 @@ public class Event implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer version = 0;
+
+    private Integer version;
 
     @NotNull
     private Timestamp createdAt;
@@ -24,8 +25,13 @@ public class Event implements Serializable {
      * Default constructor
      */
     public Event() {
-        createdAt = new Timestamp(System.currentTimeMillis());
         version = 0;
+        createdAt = new Timestamp(System.currentTimeMillis());
+    }
+
+    public Event (Integer version) {
+        this.version = version;
+        this.createdAt = new Timestamp(System.currentTimeMillis());
     }
 
     public Long getId() {
