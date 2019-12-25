@@ -17,11 +17,11 @@ import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 public class TrainEventIT {
@@ -54,25 +54,25 @@ public class TrainEventIT {
      * Context initialisation
      */
     @BeforeEach
-    public void setup() {
+    void setup() {
         MockitoAnnotations.initMocks(this);
-        final TrainResource trainResource = new TrainResource(trainRepository);
-        this.restTrainMockMvc = MockMvcBuilders.standaloneSetup(trainResource)
+        final TrainStateResource trainStateResource = new TrainStateResource(trainRepository);
+        this.restTrainMockMvc = MockMvcBuilders.standaloneSetup(trainStateResource)
             .setValidator(validator).build();
     }
 
     /**
      * Created an entity for this test
      */
-    public static Train createTrainEntity(EntityManager em) {
+    static Train createTrainEntity(EntityManager em) {
         return new Train().maxNumberOfPassenger(DEFAULT_NUMBER_OF_PASSENGER);
     }
-    public static Event createEventEntity(EntityManager em) {
+    static Event createEventEntity(EntityManager em) {
         return new Event();
     }
 
     @BeforeEach
-    public void initTest() {
+    void initTest() {
         train = createTrainEntity(em);
         event = createEventEntity(em);
     }
@@ -112,30 +112,48 @@ public class TrainEventIT {
 
     @Test
     @Transactional
-    public void deleteEvent() throws Exception {
+    public void deleteLastEvent() throws Exception {
+        trainRepository.saveAndFlush(train);
+
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated());
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated());
+
+        restTrainMockMvc.perform(delete("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isNoContent());
+
+        Train mockedTrain = trainRepository.findById(train.getId()).get();
+        assertThat(mockedTrain).isEqualTo(train);
+        assertThat(mockedTrain.getVersion()).isEqualTo(1);
+
+        List<Event> eventList = mockedTrain.getEventList();
+        assertThat(eventList.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    public void delete_until_a_specific_event_on_a_train() {
         assert false;
     }
 
     @Test
     @Transactional
-    public void train_and_event_states_should_stay_synchronise_over_time() throws Exception {
+    public void event_creation_interact_with_train_state() throws Exception {
         trainRepository.saveAndFlush(train);
 
-        restTrainMockMvc.perform(get("/api/trains/" + train.getId()))
-        .andExpect(status().isOk());
+        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
+        .andExpect(status().isCreated());
 
         restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.version").value(1));
+        .andExpect(status().isCreated());
 
-        restTrainMockMvc.perform(post("/api/trains/" + train.getId() + "/events"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.version").value(2));
+        Train mockedTrain = trainRepository.findById(train.getId()).get();
+        assertThat(mockedTrain).isEqualTo(train);
+        assertThat(mockedTrain.getVersion()).isEqualTo(2);
 
-        restTrainMockMvc.perform(get("/api/trains/" + train.getId()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.version").value(2));
-        // I dunno why this test fails, I suppose I've forgot something but let's continue
+        List<Event> eventList = mockedTrain.getEventList();
+        assertThat(eventList.size()).isEqualTo(2);
     }
 
     @Test
