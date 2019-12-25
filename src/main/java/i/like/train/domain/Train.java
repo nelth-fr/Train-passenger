@@ -16,7 +16,7 @@ public class Train implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer version = 0;
+    private Integer version;
 
     private Integer maxNumberOfPassenger;
 
@@ -29,7 +29,9 @@ public class Train implements Serializable {
     /**
      * Default constructor
      */
-    public Train() { }
+    public Train() {
+        this.version = 0;
+    }
 
     /**
      * Getters and setters

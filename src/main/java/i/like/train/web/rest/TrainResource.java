@@ -86,8 +86,11 @@ public class TrainResource {
     public ResponseEntity<List<Passenger>> getPassengerListByTrain(@PathVariable Long id) {
         log.debug("REST request to get a list of Passengers on Train.getId() : {}", id);
         Optional<Train> trainRepositoryById = trainRepository.findById(id);
-        List<Passenger> passengerList = trainRepositoryById.get().getPassengerList();
-        return ResponseEntity.ok().body(passengerList);
+        if(trainRepositoryById.isPresent()) {
+            List<Passenger> passengerList = trainRepositoryById.get().getPassengerList();
+            return ResponseEntity.ok().body(passengerList);
+        }
+        throw new BadRequestAlertException("ID unknown, you can't get Passengers from a Train which does not exist", ENTITY_NAME, id.toString());
     }
 
     /**
@@ -113,21 +116,24 @@ public class TrainResource {
         Optional<Train> train = trainRepository.findById(id);
         // We use the power of Optional type or throw exception
         if(train.isPresent()){
-            List<Event> eventList = train.get().getEventList();
-            Event eventToSave = new Event(0);
+            int lastVersion = train.get().getVersion();
+            train.get().setVersion(lastVersion + 1);
 
-            if(eventList.size() == 1) eventToSave = new Event(1);
-            if(eventList.size() >= 2) {
+            List<Event> eventList = train.get().getEventList();
+            Event eventToSave = new Event(1);
+            if(eventList.size() >= 1) {
                 int lastEventVersion = Iterables.getLast(eventList).getVersion();
                 eventToSave = new Event(lastEventVersion + 1);
             }
+
             eventList.add(eventToSave);
             trainRepository.save(train.get());
+
             return ResponseEntity.created(
                 new URI("/api/trains/" + train.get().getId() + "/events" + eventToSave.getId()))
                 .body(eventToSave);
         }
-        throw new BadRequestAlertException("ID unknown, you can't add Event to a Train which doesen't exist", ENTITY_NAME, id.toString());
+        throw new BadRequestAlertException("ID unknown, you can't add Event to a Train which does not exist", ENTITY_NAME, id.toString());
     }
 
 }

@@ -100,13 +100,13 @@ public class TrainResourceIT {
         trainRepository.saveAndFlush(train);
 
         restTrainMockMvc.perform(get("/api/trains")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(train.getId().intValue())))
-            .andExpect(jsonPath("$.[*].version").value(hasItem(train.getVersion())))
-            .andExpect(jsonPath("$.[*].passengerList").value(hasItem(DEFAULT_PASSENGER_LIST)))
-            .andExpect(jsonPath("$.[*].eventList").value(hasItem(DEFAULT_EVENT_LIST)));
+        .contentType(TestUtil.APPLICATION_JSON_UTF8))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.[*].id").value(hasItem(train.getId().intValue())))
+        .andExpect(jsonPath("$.[*].version").value(hasItem(train.getVersion())))
+        .andExpect(jsonPath("$.[*].passengerList").value(hasItem(DEFAULT_PASSENGER_LIST)))
+        .andExpect(jsonPath("$.[*].eventList").value(hasItem(DEFAULT_EVENT_LIST)));
     }
 
     @Test
@@ -115,12 +115,12 @@ public class TrainResourceIT {
         trainRepository.saveAndFlush(train);
 
         restTrainMockMvc.perform(get("/api/trains/" + train.getId())
-            .contentType(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(jsonPath("$.id").value(train.getId()))
-            .andExpect(jsonPath("$.version").value(train.getVersion()))
-            .andExpect(jsonPath("$.maxNumberOfPassenger").value(DEFAULT_NUMBER_OF_PASSENGER))
-            .andExpect(jsonPath("$.passengerList").isEmpty())
-            .andExpect(jsonPath("$.eventList").isEmpty());
+        .contentType(TestUtil.APPLICATION_JSON_UTF8))
+        .andExpect(jsonPath("$.id").value(train.getId()))
+        .andExpect(jsonPath("$.version").value(train.getVersion()))
+        .andExpect(jsonPath("$.maxNumberOfPassenger").value(DEFAULT_NUMBER_OF_PASSENGER))
+        .andExpect(jsonPath("$.passengerList").isEmpty())
+        .andExpect(jsonPath("$.eventList").isEmpty());
     }
 
     @Test
@@ -130,8 +130,8 @@ public class TrainResourceIT {
         int databaseBeforeUpdate = trainRepository.findAll().size();
 
         restTrainMockMvc.perform(delete("/api/trains/" + train.getId())
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-        ).andExpect(status().isNoContent());
+        .contentType(TestUtil.APPLICATION_JSON_UTF8))
+        .andExpect(status().isNoContent());
 
         List<Train> trainList = trainRepository.findAll();
         assertThat(trainList).hasSize(databaseBeforeUpdate - 1);
